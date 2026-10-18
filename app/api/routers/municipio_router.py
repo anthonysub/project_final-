@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user, require_role
 from app.db.database import get_db
+from app.models.empleados import Empleado
 from app.schemas.municipio_dto import (
     MunicipioCreateDTO,
     MunicipioResponseDTO,
@@ -23,7 +25,8 @@ router = APIRouter(prefix="/municipios", tags=["Municipios"])
 )
 def create_municipio(
     municipio_in: MunicipioCreateDTO,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> MunicipioResponseDTO:
     """Crea un nuevo municipio en el sistema.
 
@@ -39,7 +42,8 @@ def create_municipio(
     description="Obtiene la lista completa de municipios registrados en el sistema."
 )
 def get_all_municipios(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> list[MunicipioResponseDTO]:
     """Obtiene la lista completa de municipios registrados en el sistema."""
     return municipio_services.get_list_municipios(db)
@@ -53,7 +57,8 @@ def get_all_municipios(
 )
 def get_municipio_by_id(
     id_municipio: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> MunicipioResponseDTO:
     """Obtiene un municipio específico por su ID.
 
@@ -70,7 +75,8 @@ def get_municipio_by_id(
 def update_municipio(
     id_municipio: int,
     municipio_in: MunicipioUpdateDTO,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> MunicipioResponseDTO:
     """Actualiza la información de un municipio existente.
 
@@ -88,7 +94,8 @@ def update_municipio(
 )
 def delete_municipio(
     id_municipio: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> None:
     eliminado = municipio_services.delete_municipio(db, id_municipio)
     if not eliminado:

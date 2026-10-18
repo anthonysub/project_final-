@@ -49,8 +49,8 @@ class TicketService:
             return None
         return TicketResponseDTO.model_validate(ticket)
 
-    def get_tickets_by_cliente(self, db: Session, id_cliente: int) -> list[TicketResponseDTO]:
-        tickets = ticket_repository.get_tickets_by_cliente(db, id_cliente)
+    def get_tickets_by_cliente(self, db: Session, id_cliente: int, id_tecnico: int | None = None) -> list[TicketResponseDTO]:
+        tickets = ticket_repository.get_tickets_by_cliente(db, id_cliente, id_tecnico)
         return [TicketResponseDTO.model_validate(ticket) for ticket in tickets]
 
     def update_ticket(  

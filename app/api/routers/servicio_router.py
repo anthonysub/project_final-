@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user, require_role
 from app.db.database import get_db
+from app.models.empleados import Empleado
 from app.schemas.servicio_dto import ServicioCreateDTO, ServicioResponseDTO, ServicioUpdateDTO
 from app.services.servicio_service import servicio_service
 
@@ -23,7 +25,8 @@ router = APIRouter(prefix="/servicios", tags=["Servicios"])
 )
 def create_servicio(
     servicio_in: ServicioCreateDTO,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> ServicioResponseDTO:
     #crea un servicio
     return servicio_services.create_servicio(db, servicio_in)
@@ -35,7 +38,8 @@ def create_servicio(
     description="Obtiene la lista completa de servicios registrados"
 )
 def get_all_servicios(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 )-> list[ServicioResponseDTO]:
     return servicio_services.get_all_servicios(db)
 
@@ -49,7 +53,8 @@ def get_all_servicios(
 )
 def get_servicio_by_id(
     id_servicio: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> ServicioResponseDTO:
     servicio = servicio_services.get_servicio_by_id(db, id_servicio)
     if servicio is None:
@@ -69,7 +74,8 @@ def get_servicio_by_id(
 def update_servicio(
     id_servicio: int,
     servicio_in: ServicioUpdateDTO,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> ServicioResponseDTO:
     servicio_actualizado = servicio_services.update_servicio(db, id_servicio, servicio_in)
     if servicio_actualizado is None:
@@ -87,7 +93,8 @@ def update_servicio(
 )
 def delete_servicio(
     id_servicio: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ):
     servicio = servicio_services.get_servicio_by_id(db, id_servicio)
     if servicio is None:

@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user, require_role
 from app.db.database import get_db
+from app.models.empleados import Empleado
 from app.schemas.estado_ticket_dto import EstadoTicketCreateDTO, EstadoTicketResponseDTO, EstadoTicketUpdateDTO
 from app.services.estado_ticket_service import estado_ticket_service
 
@@ -21,7 +23,8 @@ router = APIRouter(prefix="/estados-ticket", tags=["Estados de Ticket"])
 )
 def create_estado_ticket(
     canal_in: EstadoTicketCreateDTO,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> EstadoTicketResponseDTO:
     """Crea un nuevo estado de ticket."""
     return estado_ticket_services.create_estado_ticket(db, canal_in)
@@ -33,7 +36,8 @@ def create_estado_ticket(
     description = "Obtiene la lista completa de estados de ticket registrados",
 )
 def get_all_estados_ticket(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> list[EstadoTicketResponseDTO]:
     """Obtiene la lista completa de estados de ticket registrados."""
     return estado_ticket_services.get_list_estado_tickets(db)
@@ -47,7 +51,8 @@ def get_all_estados_ticket(
 )
 def get_estado_ticket_by_id(
     id_estado_ticket: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> EstadoTicketResponseDTO:
     """Obtiene un estado de ticket por su ID."""
     estado_ticket = estado_ticket_services.get_estado_ticket_by_id(db, id_estado_ticket)
@@ -67,7 +72,8 @@ def get_estado_ticket_by_id(
 def update_estado_ticket(
     id_estado_ticket: int,
     estado_ticket_in: EstadoTicketUpdateDTO,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> EstadoTicketResponseDTO:
     """Actualiza un estado de ticket existente."""
     estado_ticket_actualizado = estado_ticket_services.update_estado_ticket(db, id_estado_ticket, estado_ticket_in)
@@ -86,7 +92,8 @@ def update_estado_ticket(
 )
 def delete_estado_ticket(
     id_estado_ticket: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> None:
     """Elimina un estado de ticket existente por su ID."""
     eliminado = estado_ticket_services.delete_estado_ticket(db, id_estado_ticket)

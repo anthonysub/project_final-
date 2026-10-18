@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 
+from app.api.dependencies import get_current_user, require_role
 from app.db.database import get_db
+from app.models.empleados import Empleado
 from app.schemas.departamento_dto import DepartamentoCreateDTO, DepartamentoResponseDTO, DepartamentoUpdateDTO
 from app.services.departament_service import departamento_service
 
@@ -27,7 +29,7 @@ router = APIRouter(prefix="/departamentos", tags=["Departamentos"])
 def create_departamento(
     departamento_in: DepartamentoCreateDTO,
     db: Session = Depends(get_db),
-
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> DepartamentoResponseDTO:
     """Crea un nuevo departamento."""
     # Corrección: comentarios y variable corregidos (antes decía "crea un canal de atención")
@@ -41,6 +43,7 @@ def create_departamento(
 )
 def get_all_departamentos(
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> list[DepartamentoResponseDTO]:
     """Obtiene la lista completa de departamentos registrados."""
     # Corrección: método renombrado a get_list_departamentos (antes get_all_departamentos no existía en el Service)
@@ -55,6 +58,7 @@ def get_all_departamentos(
 def get_departamento_by_id(
     id_departamento: int,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> DepartamentoResponseDTO:
     """Obtiene un departamento por su ID."""
     # Corrección: se agregó validación 404 (antes no verificaba si el ID existía)
@@ -76,6 +80,7 @@ def update_departamento(
     id_departamento: int,
     departamento_in: DepartamentoUpdateDTO,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> DepartamentoResponseDTO:
     """Actualiza parcialmente un departamento."""
     # Corrección: se agregó validación 404 (antes no verificaba si el ID existía)
@@ -96,6 +101,7 @@ def update_departamento(
 def delete_departamento(
     id_departamento: int,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> None:
     """Elimina un departamento por su ID."""
     # Corrección: typo "elimnado" → "eliminado", variable corregida

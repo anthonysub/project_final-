@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import require_role
 from app.db.database import get_db
+from app.models.empleados import Empleado
 from app.schemas.empleado_dto import (
     EmpleadoCreateDTO,
     EmpleadoResponseDTO,
@@ -11,7 +13,12 @@ from app.services.empleado_service import empleado_service
 
 # empleado_service ya es una instancia singleton, no se instancia de nuevo
 empleado_services = empleado_service
-router = APIRouter(prefix="/empleados", tags=["Empleados"])
+router = APIRouter(
+    prefix="/empleados",
+    tags=["Empleados"],
+    # ── PERMISO: solo Administrador gestiona empleados ────────────────
+    dependencies=[Depends(require_role("Administrador"))],
+)
 
 @router.post(
     "", 
@@ -22,7 +29,9 @@ router = APIRouter(prefix="/empleados", tags=["Empleados"])
 )
 def create_empleado(
     empleado_in: EmpleadoCreateDTO,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador"))
+
 ) -> EmpleadoResponseDTO:
     """Crea un nuevo empleado en el sistema.
 
@@ -40,7 +49,9 @@ def create_empleado(
     description="Obtiene la lista completa de empleados registrados en el sistema."
 )
 def get_all_empleados(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    # ── PERMISO: solo Admin puede ver la lista de empleados ──────────
+    current_user: Empleado = Depends(require_role("Administrador", "Gestor")),
 ) -> list[EmpleadoResponseDTO]:
     """Obtiene la lista completa de empleados registrados en el sistema."""
     return empleado_services.get_list_empleados(db)
@@ -53,7 +64,10 @@ def get_all_empleados(
 )
 def get_empleado_by_id(
     id_empleado: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    # ── PERMISO: solo Admin o Gestor pueden ver un empleado específico ──
+    current_user: Empleado = Depends(require_role("Administrador", "Gestor"))
+
 ) -> EmpleadoResponseDTO:
     """Obtiene un empleado específico por su ID.
 
@@ -70,7 +84,9 @@ def get_empleado_by_id(
 def update_empleado(
     id_empleado: int,
     empleado_update: EmpleadoUpdateDTO,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador"))
+
 ) -> EmpleadoResponseDTO:
     """Actualiza la información de un empleado específico por su ID.
 
@@ -87,7 +103,8 @@ def update_empleado(
 )
 def delete_empleado(
     id_empleado: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador"))
 ) -> None:
     eliminado = empleado_services.delete_empleado(db, id_empleado)
     if not eliminado:

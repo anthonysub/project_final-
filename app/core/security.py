@@ -9,15 +9,9 @@ y ACCESS_TOKEN_EXPIRE_MINUTES definidas en app.core.config.
 from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 
 from app.core.config import settings
-
-# ── Configuración de hashing de contraseñas ─────────────────────────
-# CryptContext de passlib: usa bcrypt como algoritmo principal.
-# "deprecated": "auto" hace que si bcrypt queda obsoleto en el futuro,
-# passlib migre automáticamente los hashes al nuevo algoritmo recomendado.
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
@@ -34,7 +28,7 @@ def hash_password(password: str) -> str:
         >>> hash_password("admin123")
         '$2b$12$LJ3m...'
     """
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -52,7 +46,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         >>> verify_password("admin123", hash_guardado_en_bd)
         True
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8"),
+            hashed_password.encode("utf-8"),
+        )
+    except ValueError:
+        # Hash inválido (no es un hash bcrypt válido) -> nunca coincide
+        return False
 
 
 def create_access_token(data: dict) -> str:

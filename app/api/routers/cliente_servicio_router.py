@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import require_role
 from app.db.database import get_db
 from app.schemas.cliente_servicio_dto import (
     ClienteServicioCreateDTO,
@@ -12,7 +13,12 @@ from app.services.cliente_servicio_service import cliente_servicio_service
 # cliente_servicio_service ya es una instancia singleton, no se instancia de nuevo
 cliente_servicio_services = cliente_servicio_service
 
-router = APIRouter(prefix="/cliente_servicios", tags=["ClienteServicios"])
+router = APIRouter(
+    prefix="/cliente_servicios",
+    tags=["ClienteServicios"],
+    # ── PERMISO: Admin y Gestor gestionan cliente-servicios ───────────
+    dependencies=[Depends(require_role("Administrador", "Gestor"))],
+)
 
 @router.post(
     "",

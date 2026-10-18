@@ -11,7 +11,9 @@ Usa este archivo como plantilla para crear los demás routers de catálogos.
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user, require_role
 from app.db.database import get_db
+from app.models.empleados import Empleado
 from app.schemas.canal_dto import CanalCreateDTO, CanalResponseDTO, CanalUpdateDTO
 from app.services.canal_service import canal_service
 
@@ -36,6 +38,7 @@ router = APIRouter(prefix="/canales", tags=["Canales"])
 def create_canal(
     canal_in: CanalCreateDTO,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> CanalResponseDTO:
     """Crea un nuevo canal (ej: Teléfono, Correo, Presencial).
 
@@ -52,6 +55,7 @@ def create_canal(
 )
 def get_all_canales(
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> list[CanalResponseDTO]:
     """Obtiene la lista completa de canales registrados."""
     return canal_services.get_all_canales(db)
@@ -66,6 +70,7 @@ def get_all_canales(
 def get_canal_by_id(
     id_canal: int,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> CanalResponseDTO:
     """Obtiene un canal específico por su ID.
 
@@ -90,6 +95,7 @@ def update_canal(
     id_canal: int,
     canal_update: CanalUpdateDTO,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> CanalResponseDTO:
     """Actualiza parcialmente un canal. Solo los campos enviados se modifican.
 
@@ -114,6 +120,7 @@ def update_canal(
 def delete_canal(
     id_canal: int,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> None:
     """Elimina un canal por su ID. Retorna 204 si fue exitoso, 404 si no existe.
 

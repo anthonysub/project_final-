@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import require_role
 from app.db.database import get_db
 from app.schemas.direccion_dto import (
     DireccionCreateDTO,
@@ -12,7 +13,12 @@ from app.services.direccion_service import direccion_service
 # direccion_service ya es una instancia singleton, no se instancia de nuevo
 direccion_services = direccion_service
 
-router = APIRouter(prefix="/direcciones", tags=["Direcciones"])
+router = APIRouter(
+    prefix="/direcciones",
+    tags=["Direcciones"],
+    # ── PERMISO: Admin y Gestor gestionan direcciones ─────────────────
+    dependencies=[Depends(require_role("Administrador", "Gestor"))],
+)
 
 @router.post(
     "",

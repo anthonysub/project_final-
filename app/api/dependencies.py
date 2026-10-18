@@ -82,3 +82,35 @@ def get_current_user(
         )
 
     return empleado
+
+
+def require_role(*nombre_roles: str):
+    """
+    Dependencia que exige que el usuario autenticado tenga un rol específico.
+
+    Se "apila" sobre get_current_user: primero autentica (quién eres) y
+    luego verifica el rol (qué puedes hacer). Si el rol no coincide,
+    devuelve 403 Forbidden.
+
+    Ejemplo de uso en un router:
+
+        @router.delete("/{id_ticket}")
+        def delete_ticket(
+            id_ticket: int,
+            db: Session = Depends(get_db),
+            current_user: Empleado = Depends(require_role("Administrador")),
+        ):
+            ...
+
+    Nota: current_user.rol es la relación definida en el modelo Empleado
+    (carga perezosa); funciona porque la sesión sigue abierta durante la petición.
+    """
+    def verificador(current_user: Empleado = Depends(get_current_user)) -> Empleado:
+        if current_user.rol.nombre_rol not in nombre_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Se requiere uno de los roles {nombre_roles} para esta acción",
+            )
+        return current_user
+
+    return verificador

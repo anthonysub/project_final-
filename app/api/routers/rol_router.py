@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import require_role
 from app.db.database import get_db
 from app.schemas.rol_dto import RolCreateDTO, RolResponseDTO, RolUpdateDTO
 from app.services.rol_service import rol_service
@@ -8,7 +9,12 @@ from app.services.rol_service import rol_service
 # rol_service ya es una instancia singleton, no se instancia de nuevo
 rol_services = rol_service
 
-router = APIRouter(prefix= "/roles", tags=["Roles"])
+router = APIRouter(
+    prefix="/roles",
+    tags=["Roles"],
+    # ── PERMISO: solo Administrador gestiona roles ───────────────────
+    dependencies=[Depends(require_role("Administrador"))],
+)
 
 @router.post(
     "",

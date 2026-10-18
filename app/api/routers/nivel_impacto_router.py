@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user, require_role
 from app.db.database import get_db
+from app.models.empleados import Empleado
 from app.schemas.nivel_impacto_dto import NivelImpactoCreateDTO, NivelImpactoResponseDTO, NivelImpactoUpdateDTO
 from app.services.nivel_impacto_service import nivel_impacto_service
 
@@ -21,6 +23,7 @@ router = APIRouter(prefix="/niveles-impacto", tags=["Niveles de Impacto"])
 def create_nivel_impacto(
     nivel_impacto_in: NivelImpactoCreateDTO,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> NivelImpactoResponseDTO:
     """Crea un nuevo nivel de impacto."""
     return nivel_impacto_service.create_nivel_impacto(db, nivel_impacto_in)
@@ -33,6 +36,7 @@ def create_nivel_impacto(
 ) 
 def get_all_niveles_impacto(
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> list[NivelImpactoResponseDTO]:
     """Obtiene la lista completa de niveles de impacto registrados."""
     return nivel_impacto_service.get_list_niveles_impacto(db)
@@ -46,6 +50,7 @@ def get_all_niveles_impacto(
 def get_nivel_impacto_by_id(
     id_nivel_impacto: int,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> NivelImpactoResponseDTO:
     """Obtiene un nivel de impacto por su ID."""
     nivel_impacto = nivel_impacto_service.get_nivel_impacto_by_id(db, id_nivel_impacto)
@@ -66,6 +71,7 @@ def update_nivel_impacto(
     id_nivel_impacto: int,
     nivel_impacto_in: NivelImpactoUpdateDTO,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> NivelImpactoResponseDTO:
     """Actualiza un nivel de impacto por su ID."""
     nivel_impacto_actualizado = nivel_impacto_service.update_nivel_impacto(db, id_nivel_impacto, nivel_impacto_in)
@@ -85,6 +91,7 @@ def update_nivel_impacto(
 def delete_nivel_impacto(
     id_nivel_impacto: int,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> None:
     """Elimina un nivel de impacto por su ID."""
     eliminado = nivel_impacto_service.delete_nivel_impacto(db, id_nivel_impacto)

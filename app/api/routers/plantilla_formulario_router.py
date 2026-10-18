@@ -16,7 +16,9 @@ Particularidades de este router frente a otros catálogos:
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user, require_role
 from app.db.database import get_db
+from app.models.empleados import Empleado
 from app.schemas.plantilla_formulario_dto import (
     PlantillaFormularioCreateDTO,
     PlantillaFormularioResponseDTO,
@@ -52,6 +54,7 @@ router = APIRouter(prefix="/plantillas", tags=["Plantillas de Formulario"])
 def create_plantilla(
     plantilla_in: PlantillaFormularioCreateDTO,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> PlantillaFormularioResponseDTO:
     """Crea una nueva plantilla de formulario.
 
@@ -94,6 +97,7 @@ def create_plantilla(
 )
 def get_all_plantillas(
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> list[PlantillaFormularioResponseDTO]:
     """Lista todas las plantillas de formulario.
 
@@ -118,6 +122,7 @@ def get_all_plantillas(
 def get_plantilla_by_id(
     id_plantilla: int,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(get_current_user),
 ) -> PlantillaFormularioResponseDTO:
     """Obtiene una plantilla por su ID.
 
@@ -162,6 +167,7 @@ def update_plantilla(
     id_plantilla: int,
     plantilla_update: PlantillaFormularioUpdateDTO,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> PlantillaFormularioResponseDTO:
     """Actualiza parcialmente una plantilla de formulario.
 
@@ -222,6 +228,7 @@ def update_plantilla(
 def delete_plantilla(
     id_plantilla: int,
     db: Session = Depends(get_db),
+    current_user: Empleado = Depends(require_role("Administrador")),
 ) -> None:
     """Elimina una plantilla de formulario por su ID.
 

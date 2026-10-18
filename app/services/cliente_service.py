@@ -16,7 +16,11 @@ class ClienteService:
     ) -> ClienteResponseDTO:
 
         cliente_db = Cliente(
-            nombre_cliente= cliente_in.nombre_cliente
+            nombres=cliente_in.nombres,
+            apellidos=cliente_in.apellidos,
+            dpi=cliente_in.dpi,
+            celular=cliente_in.celular,
+            email=cliente_in.email,
         )
 
         cliente_creado = cliente_repository.create_cliente(db, cliente_db)

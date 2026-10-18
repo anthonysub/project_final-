@@ -24,9 +24,12 @@ class TicketRepository:
         """Busca un ticket por ID. Retorna None si no existe."""
         return db.query(Ticket).filter(Ticket.id_ticket == id_ticket).first()
     
-    def get_tickets_by_cliente(self, db: Session, id_cliente: int) -> list[Ticket]:
-        """Lista todos los tickets asociados a un cliente específico."""
-        return db.query(Ticket).filter(Ticket.id_cliente == id_cliente).all()
+    def get_tickets_by_cliente(self, db: Session, id_cliente: int, id_tecnico: int | None = None) -> list[Ticket]:
+        """Lista los tickets de un cliente (opcionalmente filtrados por técnico)."""
+        query = db.query(Ticket).filter(Ticket.id_cliente == id_cliente)
+        if id_tecnico is not None:
+            query = query.filter(Ticket.id_tecnico == id_tecnico)
+        return query.all()
 
     def get_all_tickets(
         self,
