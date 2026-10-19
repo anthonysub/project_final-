@@ -8,12 +8,12 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: '${{ github.workflow }}-${{ github.ref }}'
   cancel-in-progress: true
 
 jobs:
   test-suite:
-    name: Validaciones Pytest sobre Python ${{ matrix.python-version }}
+    name: 'Validaciones Pytest sobre Python ${{ matrix.python-version }}'
     runs-on: ubuntu-latest
 
     services:
@@ -42,10 +42,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Instauración del entorno Python ${{ matrix.python-version }}
+      - name: 'Instauración del entorno Python ${{ matrix.python-version }}'
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '${{ matrix.python-version }}'
           cache: 'pip'
 
       - name: Aprovisionamiento del Entorno Virtual (Venv)
@@ -59,9 +59,9 @@ jobs:
         id: cache-venv
         with:
           path: .venv/
-          key: ${{ runner.os }}-venv-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt', 'pyproject.toml') }}
+          key: "${{ runner.os }}-venv-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt', 'pyproject.toml') }}"
           restore-keys: |
-            ${{ runner.os }}-venv-${{ matrix.python-version }}-
+            '${{ runner.os }}-venv-${{ matrix.python-version }}-'
 
       - name: Instalación de Dependencias Core
         if: steps.cache-venv.outputs.cache-hit != 'true'
